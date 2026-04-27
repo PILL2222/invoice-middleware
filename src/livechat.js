@@ -84,7 +84,7 @@ async function transferToAgent(chatId, internalNote="") {
     try {
       await lcClient.post("/send_event",{
         chat_id:chatId,
-        event:{type:"message",text:"Vui lòng chờ, nhân viên sẽ hỗ trợ bạn ngay!",visibility:"all"},
+        event:{type:"message",text:"Vui lòng chờ, nhân viên sẽ hỗ trợ anh/chị ngay!",visibility:"all"},
       });
     } catch(e){}
   }
