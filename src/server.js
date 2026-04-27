@@ -27,6 +27,7 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "*" }));
 app.use(express.json({ limit: "20kb" }));
+app.set('trust proxy', 1);
 app.use("/webhook", rateLimit({ windowMs:60000, max:120, standardHeaders:true, legacyHeaders:false }));
 
 // ── Session ───────────────────────────────────────────────────────────────────
