@@ -18,8 +18,7 @@ const statusCache = new Map();
 const replyIndex  = new Map();
 
 const STATUS_KW = [
-  "Đã nhận được","Chưa nhận được","Đã thanh toán","Chờ thanh toán",
-  "Đang xử lý","Đã hủy","Hoàn tiền","Lỗi thanh toán",
+  "Đã lên điểm","Chưa nhận được","Đã thanh toán","Chờ thanh toán"
 ];
 
 function detectStatus(text) {
