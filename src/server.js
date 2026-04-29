@@ -107,10 +107,10 @@ app.post("/webhook/livechat",async(req,res)=>{
       setSession(chatId,{...session,step:"collecting",username});
       await sendLivechatMessage(chatId,
         `✅ Dạ em đã nhận tên đăng nhập: ${username}\n\n`+
-        "Anh/chị cho em xin thêm 3 thông tin sau nhé ạ:\n\n"+
+        "Anh cho em xin thêm 3 thông tin sau nhé ạ:\n\n"+
         "📱 Số điện thoại đăng ký trên trang\n"+
         "🖼️ Ảnh hóa đơn chuyển khoản\n"+
-        "🔑 Nội dung chuyển khoản (VD: CKFP5e0h)\n\n"+
+        "🔑 Nội dung chuyển khoản\n\n"+
         "Anh có thể giúp em cung cấp từng thông tin để em dễ dàng hỗ trợ kiểm tra chính xác cho mình ạ"
       );
       return;
