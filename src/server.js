@@ -186,7 +186,7 @@ async function processLookup(chatId,session){
       `💰 Trạng thái: ${result.status}\n` +
       (result.note ? `📝 Ghi chú: ${result.note}\n` : "") +
       cskhLine +
-      `\n\n Với hóa đơn chưa nhận được anh giúp em thông cảm chờ thêm để CSKH kiểm tra đối soát thay mình ạ. Anh cần em hỗ trợ thêm không ạ? 😊`
+      `\n\n Em gửi thông tin mình kết quả tra soát bên trên ạ, anh cần em hỗ trợ thêm vấn đề gì thêm nữa không ạ? 😊`
     );
     logger.info("Found",{status:result.status});
   } else {
