@@ -95,7 +95,7 @@ app.post("/webhook/livechat",async(req,res)=>{
     if(!session){
       setSession(chatId,{step:"wait_username"});
       session=getSession(chatId);
-      await sendLivechatMessage(chatId,"Dạ em chào anh/chị! 👋\n\nAnh/chị vui lòng cho em biết tên đăng nhập trên trang của mình nhé ạ?");
+      await sendLivechatMessage(chatId,"Dạ em chào anh/chị! 👋\n\nAnh/chị vui lòng cho em biết tên đăng nhập trên trang của mình để em đối soát hóa đơn cho mình nhé ạ?");
       return;
     }
 
@@ -103,7 +103,7 @@ app.post("/webhook/livechat",async(req,res)=>{
     if(session.step==="wait_username"){
       if(!text)return;
       const username=cleanUsername(text);
-      if(username.length<2){await sendLivechatMessage(chatId,"Dạ tên đăng nhập chưa hợp lệ, anh/chị nhập lại giúp em nhé ạ 🙏");return;}
+      if(username.length<2){await sendLivechatMessage(chatId,"Dạ tên đăng nhập em kiểm tra không có, anh/chị kiểm tra và nhập lại giúp em nhé ạ 🙏");return;}
       setSession(chatId,{...session,step:"collecting",username});
       await sendLivechatMessage(chatId,
         `✅ Dạ em đã nhận tên đăng nhập: ${username}\n\n`+
@@ -111,7 +111,7 @@ app.post("/webhook/livechat",async(req,res)=>{
         "📱 Số điện thoại đăng ký trên trang\n"+
         "🖼️ Ảnh hóa đơn chuyển khoản\n"+
         "🔑 Nội dung chuyển khoản (VD: CKFP5e0h)\n\n"+
-        "Anh/chị có thể gửi từng thứ riêng hoặc gộp SĐT + mã CK chung 1 tin đều được ạ!"
+        "Anh/chị có thể giúp em cung c!"
       );
       return;
     }
@@ -144,7 +144,7 @@ app.post("/webhook/livechat",async(req,res)=>{
 });
 
 async function processLookup(chatId,session){
-  await sendLivechatMessage(chatId,"🔍 Dạ em đang đối soát thông tin hóa đơn, vui lòng chờ em chút ạ...");
+  await sendLivechatMessage(chatId,"🔍 Dạ em đang đối soát thông tin hóa đơn của mình, vui lòng chờ em chút ạ...");
   
   // Luôn fetch messages mới nhất trước khi tìm
   const{telegramService:ts}=require("./telegram");
@@ -163,8 +163,24 @@ async function processLookup(chatId,session){
     clearSession(chatId);return;
   }
   if(result.found){
-    const em={"Đã lên điểm":"✅","Chưa lên điểm":"⏳","Đã nhận được":"✅","Chưa nhận được":"⏳","Đã thanh toán":"✅","Chờ thanh toán":"⏳","Đang xử lý":"🔄","Thành công":"✅","Thất bại":"❌","Đã hủy":"❌","Hoàn tiền":"↩️","Lỗi thanh toán":"⚠️"}[result.status]||"📋";
-    await sendLivechatMessage(chatId,`${em} Dạ em tra cứu được ạ!\n\n💰 Trạng thái: ${result.status}\n`+(result.note?`📝 Ghi chú: ${result.note}\n`:"")+`\nAnh/chị cần hỗ trợ thêm không ạ? 😊`);
+    const CSKH_TG = "https://t.me/st666cskh247";
+    const emMap = {
+      "Đã lên điểm và cập nhật vào tài khoản":"✅","Chưa lên điểm":"❌","Hóa đơn hoàn tiền":"↩️","Giao dịch chưa xác định":"⚠️",
+      "Đã nhận được, anh/chị liên hệ telegram để hỗ trợ lên điểm":"⏳",
+      "Chuyển sai ngân hàng nhận, anh/chị liên hệ telegram để biết thêm thông tin ạ":"❌",
+    };
+    const em = emMap[result.status]||"📋";
+    const needCskh = [
+      "Đã nhận được, anh/chị liên hệ telegram để hỗ trợ lên điểm",
+      "Chuyển sai ngân hàng nhận, anh/chị liên hệ telegram để biết thêm thông tin ạ",
+    ].includes(result.status);
+    const cskhLine = needCskh?`\n📲 Liên hệ CSKH Telegram: ${CSKH_TG}`:"";
+    await sendLivechatMessage(chatId,
+      `${em} Dạ em tra cứu được ạ!\n\n`+
+      `💰 Trạng thái: ${result.status}\n`+
+      (result.note?`📝 Ghi chú: ${result.note}\n`:"")+
+      cskhLine+`\n\nAnh/chị cần hỗ trợ thêm không ạ? 😊`
+    );
     logger.info("Found",{status:result.status});
   } else {
     await sendLivechatMessage(chatId,"Dạ em không tìm thấy hóa đơn khớp với thông tin anh/chị cung cấp ạ 😔\nĐang kết nối nhân viên hỗ trợ cho anh/chị...");
