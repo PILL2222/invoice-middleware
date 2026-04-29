@@ -96,7 +96,7 @@ app.post("/webhook/livechat",async(req,res)=>{
     if(!session){
       setSession(chatId,{step:"wait_username"});
       session=getSession(chatId);
-      await sendLivechatMessage(chatId,"Dạ em chào anh! 👋\n\n Anh vui lòng cho em biết tên đăng nhập trên trang để em tra soát hóa đơn của mình nhé ạ?");
+      await sendLivechatMessage(chatId,"Dạ chào mừng anh đến với ST666! 👋\n\n Em là Tuyết Nhi, phụ trách kiểm tra hóa đơn của mình. Anh vui lòng cho em biết tên đăng nhập trên trang để em tra soát hóa đơn của mình nhé ạ?");
       return;
     }
 
@@ -133,7 +133,7 @@ app.post("/webhook/livechat",async(req,res)=>{
       if(updated)setSession(chatId,session);
       if(isComplete(session)){setSession(chatId,{...session,step:"processing"});await processLookup(chatId,session);return;}
       if(updated&&statusReminder(session)){
-        await sendLivechatMessage(chatId,"✅ Dạ em đã nhận thông tin của mình! Hiện tại còn thiếu, mình cấp mốt giúp em ạ:\n\n"+statusReminder(session));
+        await sendLivechatMessage(chatId,"✅ Dạ em đã nhận thông tin của mình! Hiện tại còn thiếu, mình cấp nốt giúp em ạ:\n\n"+statusReminder(session));
       }
       return;
     }
