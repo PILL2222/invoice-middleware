@@ -166,14 +166,14 @@ async function processLookup(chatId,session){
     const CSKH_TG = "https://t.me/st666cskh247";
 
     const emMap = {
-      "Đã lên điểm":       "✅",
-      "Chưa lên điểm":     "❌",
-      "Chưa nhận được":    "❌",
-      "Chờ xác nhận thông tin": "⏳",
-      "Hóa đơn hoàn tiền": "↩️",
-      "Giao dịch chưa xác định": "⚠️",
-      "Đã nhận được, anh l0iên hệ telegram để hỗ trợ lên điểm": "⏳",
-      "Chuyển sai ngân hàng nhận, anh liên hệ telegram để biết thêm thông tin ạ": "❌",
+      "Đã lên điểm":"✅",
+      "Chưa lên điểm":"❌",
+      "Chưa nhận được":"❌",
+      "Chờ xác nhận thông tin":"⏳",
+      "Hóa đơn hoàn tiền":"↩️",
+      "Giao dịch chưa xác định":"⚠️",
+      "Đã nhận được, anh liên hệ telegram để hỗ trợ lên điểm":"⏳",
+      "Chuyển sai ngân hàng nhận, liên hệ telegram để biết thêm thông tin":"❌",
     };
     const em = emMap[result.status] || "📋";
 
