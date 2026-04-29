@@ -182,11 +182,11 @@ async function processLookup(chatId,session){
     const cskhLine = needCskh ? `\n📲 Liên hệ CSKH Telegram: ${CSKH_TG}` : "";
 
     await sendLivechatMessage(chatId,
-      `${em} Dạ em tra cứu được ạ!\n\n` +
+      `${em} Dạ sau khi tra soát thì hóa đơn của mình\n\n` +
       `💰 Trạng thái: ${result.status}\n` +
       (result.note ? `📝 Ghi chú: ${result.note}\n` : "") +
       cskhLine +
-      `\n\nAnh cần em hỗ trợ thêm không ạ? 😊`
+      `\n\n Với hóa đơn chưa nhận được anh giúp em thông cảm chờ thêm để CSKH kiểm tra đối soát thay mình ạ. Anh cần em hỗ trợ thêm không ạ? 😊`
     );
     logger.info("Found",{status:result.status});
   } else {
