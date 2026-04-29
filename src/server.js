@@ -95,7 +95,7 @@ app.post("/webhook/livechat",async(req,res)=>{
     if(!session){
       setSession(chatId,{step:"wait_username"});
       session=getSession(chatId);
-      await sendLivechatMessage(chatId,"Dạ em chào anh/chị! 👋\n\nAnh/chị vui lòng cho em biết tên đăng nhập trên trang của mình nhé ạ?");
+      await sendLivechatMessage(chatId,"Dạ em chào anh! 👋\n\n Anh vui lòng cho em biết tên đăng nhập trên trang để em tra soát hóa đơn của mình nhé ạ?");
       return;
     }
 
@@ -103,7 +103,7 @@ app.post("/webhook/livechat",async(req,res)=>{
     if(session.step==="wait_username"){
       if(!text)return;
       const username=cleanUsername(text);
-      if(username.length<2){await sendLivechatMessage(chatId,"Dạ tên đăng nhập chưa hợp lệ, anh/chị nhập lại giúp em nhé ạ 🙏");return;}
+      if(username.length<2){await sendLivechatMessage(chatId,"Dạ tên đăng nhập mình cung cấp chưa chính xác, anh kiểm tra và cung cấp nhập lại giúp em nhé ạ 🙏");return;}
       setSession(chatId,{...session,step:"collecting",username});
       await sendLivechatMessage(chatId,
         `✅ Dạ em đã nhận tên đăng nhập: ${username}\n\n`+
@@ -111,7 +111,7 @@ app.post("/webhook/livechat",async(req,res)=>{
         "📱 Số điện thoại đăng ký trên trang\n"+
         "🖼️ Ảnh hóa đơn chuyển khoản\n"+
         "🔑 Nội dung chuyển khoản (VD: CKFP5e0h)\n\n"+
-        "Anh/chị có thể gửi từng thứ riêng hoặc gộp SĐT + mã CK chung 1 tin đều được ạ!"
+        "Anh có thể giúp em cung cấp từng thông tin để em dễ dàng hỗ trợ kiểm tra chính xác cho mình ạ"
       );
       return;
     }
@@ -128,18 +128,18 @@ app.post("/webhook/livechat",async(req,res)=>{
         if(multi.transferContent){session={...session,transferContent:multi.transferContent};updated=true;logger.info("Got CK",{ck:multi.transferContent});}
         // Nếu không parse được gì và tin dài → off-topic
         if(!updated&&!imageUrl&&text.length>80){
-          await sendLivechatMessage(chatId,"Dạ anh/chị giúp em cung cấp đúng theo yêu cầu để em hỗ trợ nhanh chóng nhé ạ! 🙏\n\nCòn thiếu:\n"+statusReminder(session));
+          await sendLivechatMessage(chatId,"Dạ anh giúp em cung cấp đúng theo yêu cầu để em hỗ trợ nhanh chóng nhé ạ! 🙏\n\nCòn thiếu:\n"+statusReminder(session));
           return;
         }
       }
       if(updated)setSession(chatId,session);
       if(isComplete(session)){setSession(chatId,{...session,step:"processing"});await processLookup(chatId,session);return;}
       if(updated&&statusReminder(session)){
-        await sendLivechatMessage(chatId,"✅ Dạ em đã nhận! Còn thiếu:\n\n"+statusReminder(session));
+        await sendLivechatMessage(chatId,"✅ Dạ em đã nhận thông tin của mình! Hiện tại còn thiếu, mình cấp mốt giúp em ạ:\n\n"+statusReminder(session));
       }
       return;
     }
-    if(session.step==="processing"){await sendLivechatMessage(chatId,"Dạ em đang tra cứu, anh/chị chờ chút nhé ạ 🔍");}
+    if(session.step==="processing"){await sendLivechatMessage(chatId,"Dạ em đang tiến hàng tra soát ngay cho mình, anh giúp em thông cảm chờ chút nhé ạ 🔍");}
   }catch(err){logger.error("Handler error",{error:err.message,stack:err.stack?.slice(0,200)});}
 });
 
@@ -151,14 +151,14 @@ async function processLookup(chatId,session){
   
   const imageBuf=await downloadImage(session.imageUrl,process.env.LIVECHAT_PAT);
   if(!imageBuf){
-    await sendLivechatMessage(chatId,"Dạ em không tải được ảnh, anh/chị gửi lại ảnh giúp em nhé ạ 🙏");
+    await sendLivechatMessage(chatId,"Dạ em không tải được ảnh, anh gửi lại ảnh giúp em nhé ạ 🙏");
     setSession(chatId,{...session,step:"collecting",imageUrl:null});return;
   }
   let result;
   try{result=await searchInvoiceByAll({username:session.username,phone:session.phone,transferContent:session.transferContent,imageBuffer:imageBuf});}
   catch(err){
     logger.error("Search error",{error:err.message});
-    await sendLivechatMessage(chatId,"Dạ hệ thống gặp sự cố, em chuyển anh/chị sang nhân viên hỗ trợ ngay ạ...");
+    await sendLivechatMessage(chatId,"Dạ hệ thống gặp sự cố, em chuyển anh sang nhân viên hỗ trợ ngay ạ...");
     await transferToAgent(chatId,`Lỗi — User:${session.username} SĐT:${session.phone} CK:${session.transferContent}`);
     clearSession(chatId);return;
   }
@@ -168,28 +168,19 @@ async function processLookup(chatId,session){
     const emMap = {
       "Đã lên điểm":       "✅",
       "Chưa lên điểm":     "❌",
-      "Đã nhận được":      "✅",
       "Chưa nhận được":    "❌",
-      "Đã thanh toán":     "✅",
-      "Chờ thanh toán":    "⏳",
-      "Đang xử lý":        "🔄",
       "Chờ xác nhận thông tin": "⏳",
-      "Thành công":        "✅",
-      "Thất bại":          "❌",
-      "Đã hủy":            "❌",
-      "Hoàn tiền":         "↩️",
       "Hóa đơn hoàn tiền": "↩️",
-      "Lỗi thanh toán":    "⚠️",
       "Giao dịch chưa xác định": "⚠️",
-      "Đã nhận được, anh/chị liên hệ telegram để hỗ trợ lên điểm": "⏳",
-      "Chuyển sai ngân hàng nhận, anh/chị liên hệ telegram để biết thêm thông tin ạ": "❌",
+      "Đã nhận được, anh l0iên hệ telegram để hỗ trợ lên điểm": "⏳",
+      "Chuyển sai ngân hàng nhận, anh liên hệ telegram để biết thêm thông tin ạ": "❌",
     };
     const em = emMap[result.status] || "📋";
 
     // Trạng thái cần kèm link CSKH
     const needCskh = [
-      "Đã nhận được, anh/chị liên hệ telegram để hỗ trợ lên điểm",
-      "Chuyển sai ngân hàng nhận, anh/chị liên hệ telegram để biết thêm thông tin ạ",
+      "Đã nhận được, anh giúp em click vào telegram CSKH để bên em tiện trao đổi và hỗ trợ lên điểm",
+      "Chuyển sai ngân hàng nhận, anh giúp em click vào telegram CSKH để bên em tiện trao đổi biết thêm thông tin ạ",
     ].includes(result.status);
 
     const cskhLine = needCskh ? `\n📲 Liên hệ CSKH Telegram: ${CSKH_TG}` : "";
@@ -199,11 +190,11 @@ async function processLookup(chatId,session){
       `💰 Trạng thái: ${result.status}\n` +
       (result.note ? `📝 Ghi chú: ${result.note}\n` : "") +
       cskhLine +
-      `\n\nAnh/chị cần hỗ trợ thêm không ạ? 😊`
+      `\n\nAnh cần em hỗ trợ thêm không ạ? 😊`
     );
     logger.info("Found",{status:result.status});
   } else {
-    await sendLivechatMessage(chatId,"Dạ em không tìm thấy hóa đơn khớp với thông tin anh/chị cung cấp ạ 😔\nĐang kết nối nhân viên hỗ trợ cho anh/chị...");
+    await sendLivechatMessage(chatId,"Dạ em không tìm thấy hóa đơn khớp với thông tin anh cung cấp ạ 😔\nĐang kết nối nhân viên hỗ trợ cho anh...");
     await transferToAgent(chatId,`Không khớp — User:${session.username} SĐT:${session.phone} CK:${session.transferContent}`);
     logger.info("Not found → transferred");
   }
