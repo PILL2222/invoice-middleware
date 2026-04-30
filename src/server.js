@@ -116,23 +116,22 @@ app.post("/webhook/livechat",async(req,res)=>{
       const INVOICE_KW = [
         // Có dấu
         "hóa đơn","nạp tiền","nạp","chưa lên điểm","chưa lên","chưa nhận được","chưa nhận",
-        "không lên điểm","không lên","không nhận được","không nhận",
-        "tiền","chuyển khoản","thanh toán","giao dịch","biến động số dư",
+        "không lên điểm","không lên","không nhận được","không nhận","chuyển khoản","thanh toán","giao dịch","biến động số dư",
         "điểm","lệnh nạp","kiểm tra","tra cứu","tra soát",
-        "ngân hàng","tài khoản","số dư","nạp thất bại","nạp lỗi","lỗi nạp","lỗi thanh toán",
-        "chưa vào","không vào","đã chuyển","đã nạp","đã thanh toán","đã chuyển khoản",
+        "ngân hàng","tài khoản","nạp thất bại","nạp lỗi","lỗi nạp","lỗi thanh toán",
+        "chưa vào","không vào","đã chuyển","đã nạp","đã chuyển khoản",
         "bill","receipt","biên lai","ảnh hóa đơn",
         "mã giao dịch","mã ck","mã chuyển khoản","nội dung chuyển khoản",
         "acb","vcb","vietcombank","techcombank","mbbank","tpbank",
         "momo","zalopay","vnpay","viettel money","banking",
 
         // Không dấu (viết tắt hoặc gõ nhanh)
-        "hoa don","nap tien","nap","chua len diem","chua len","chua nhan",
-        "khong len","khong nhan","tien","chuyen khoan","thanh toan",
-        "giao dich","bien dong","diem","lenh nap","kiem tra",
+        "hoa don","nap tien","nap","chua len diem","chua len",
+        "khong len","khong nhan","chuyen khoan","thanh toan",
+        "giao dich","bien dong","lenh nap","kiem tra",
         "tra cuu","tra soat","ngan hang","tai khoan","so du","nap that bai","nap loi","loi nap",
-        "chua vao","khong vao","chua cong","khong cong",
-        "da chuyen","da nap","da thanh toan",
+        "chua vao","khong vao",
+        "da chuyen","da nap",
         "ma giao dich","ma ck","noi dung chuyen khoan",
         "deposit","payment","transfer","invoice","bank",
       ];
