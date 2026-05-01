@@ -8,6 +8,91 @@ const { sendLivechatMessage, transferToAgent, isCustomerAuthor } = require("./li
 const { downloadImage } = require("./imageMatch");
 const logger = require("./logger");
 
+// ── Keyword nhận dạng hóa đơn ─────────────────────────────────────────────────
+const INVOICE_KW = [
+  // Có dấu
+  "hóa đơn","nạp tiền","nạp","chưa lên","chưa nhận","không lên","không nhận",
+  "kiểm tra","tra cứu","tra soát","giao dịch","chuyển khoản","thanh toán",
+  "ngân hàng","biên lai","bill","mã ck","mã gd","lệnh nạp","điểm","tiền",
+  "chưa vào","không vào","đã nạp","đã chuyển","lỗi nạp","hoàn tiền",
+  "acb","vcb","mbbank","tpbank","techcombank","momo","zalopay","vnpay",
+  // Không dấu / viết tắt
+  "hoa don","nap tien","nap","chua len","chua nhan","khong len","khong nhan",
+  "kiem tra","tra cuu","giao dich","chuyen khoan","thanh toan","ngan hang",
+  "ma ck","ma gd","lenh nap","diem","da nap","da chuyen","loi nap",
+  "deposit","transfer","invoice","payment","bank","ktra","bill",
+];
+
+function isInvoiceRelated(text) {
+  if (!text) return false;
+  const t = text.toLowerCase();
+  return INVOICE_KW.some(kw => t.includes(kw));
+}
+
+// ── Extract thông tin từ tin nhắn ─────────────────────────────────────────────
+function isCKCode(s) {
+  if (!s || s.length < 4 || s.length > 30) return false;
+  const hasLetter = /[A-Za-z]/.test(s);
+  const hasDigit  = /[0-9]/.test(s);
+  if (!hasLetter || !hasDigit) return false;
+  const digitPart = s.replace(/[A-Za-z]/g,"");
+  const hasUpper  = /[A-Z]/.test(s);
+  return digitPart.length >= 4 || (hasUpper && digitPart.length >= 1);
+}
+
+function extractInfo(text, session) {
+  const result = {};
+  if (!text) return result;
+  const trimmed = text.trim();
+  const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
+
+  // Tìm CK code / Mã GD có label rõ ràng
+  if (!session.transferContent) {
+    const labeled = text.match(/(?:ck|mã\s*ck|nội\s*dung|mã\s*gd|mã\s*giao\s*dịch|ma\s*ck|nd|ref|code)[:\s]+([A-Za-z0-9;._\-]{4,50})/i);
+    if (labeled) {
+      const parts = labeled[1].split(/[;:,\s]+/);
+      const ck = parts.find(p => isCKCode(p.replace(/[^A-Za-z0-9]/g,"")))
+               || parts.find(p => /^\d{6,20}$/.test(p));
+      if (ck) result.transferContent = ck.replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+    }
+  }
+
+  // Tìm Họ Tên có label
+  if (!session.fullname) {
+    const labeled = text.match(/(?:họ\s*tên|ho\s*ten|fullname|tên\s*thật)[:\s]+([A-Za-zÀ-ỹ\s]{3,60})/i);
+    if (labeled && !/\d/.test(labeled[1])) {
+      result.fullname = labeled[1].trim();
+    }
+  }
+
+  // Standalone: 1 dòng duy nhất
+  if (lines.length === 1) {
+    const tok = trimmed.replace(/[^A-Za-z0-9]/g,"");
+
+    // CK code standalone
+    if (!session.transferContent && !result.transferContent && isCKCode(tok)) {
+      result.transferContent = tok.toUpperCase();
+    }
+    // Mã GD thuần số >= 8 chữ số
+    if (!session.transferContent && !result.transferContent && /^\d{8,20}$/.test(tok)) {
+      result.transferContent = tok;
+    }
+    // Họ tên: chữ thuần, 2+ từ, không có số
+    if (!session.fullname && !result.fullname) {
+      if (!/\d/.test(trimmed) && trimmed.split(/\s+/).length >= 2 && /^[A-Za-zÀ-ỹ\s]{4,60}$/.test(trimmed)) {
+        result.fullname = trimmed;
+      }
+    }
+  }
+
+  // Intent
+  const t = text.toLowerCase();
+  const isQ = ["tại sao","vì sao","bao giờ","làm sao","sao vậy","có ai","có không"].some(w => t.includes(w));
+  result.intent = (Object.keys(result).length <= 1 && isQ) ? "ask_status" : "provide_info";
+
+  return result;
+}
+
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
@@ -449,4 +534,3 @@ app.listen(PORT, async () => {
   }
 });
 module.exports = app;
-
