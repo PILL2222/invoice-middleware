@@ -249,10 +249,12 @@ function addReply(parentId,childId) {
 }
 
 function getLatestStatus(rootId) {
-  let best={status:null,note:null,date:0};
+  // Dùng msgId thay vì message_date để tránh lỗi NaN
+  // msgId cao hơn = tin nhắn mới hơn
+  let best={status:null,note:null,msgId:-1};
   function traverse(id) {
     const e=imageCache.get(id)||textCache.get(id);
-    if(e?.status&&e.message_date>best.date) best={status:e.status,note:e.note||null,date:e.message_date};
+    if(e?.status && id > best.msgId) best={status:e.status,note:e.note||null,msgId:id};
     for(const cid of (replyIndex.get(id)||[])) traverse(cid);
   }
   traverse(rootId);
