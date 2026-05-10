@@ -181,15 +181,14 @@ function getLatestStatus(rootId) {
 
   function traverse(id) {
     const e = imageCache.get(id) || textCache.get(id);
-    // FIX: lấy cả entry có note nhưng không có status (reply chỉ ghi chú)
-    if ((e?.status || e?.note) && id > best.msgId) {
-      best = { status: e.status || null, note: e.note || null, msgId: id };
+    if (e?.status && id > best.msgId) {
+      best = { status: e.status, note: e.note || null, msgId: id };
     }
     for (const cid of (replyIndex.get(id) || [])) traverse(cid);
   }
 
   traverse(rootId);
-  return (best.status || best.note) ? best : null;
+  return best.status ? best : null;
 }
 
 // ── Index message ─────────────────────────────────────────────────────────────
@@ -241,7 +240,7 @@ async function indexMessage(msg) {
 
   // Tin text (reply)
   const { status, note } = parseReplyText(text);
-  if (status || note || parentId) {
+  if (status || parentId) {
     textCache.set(msgId, {
       message_id:   msgId,
       parent_id:    parentId,
@@ -250,7 +249,7 @@ async function indexMessage(msg) {
       note,
       cached_at:    Date.now(),
     });
-    if (status || note) {
+    if (status) {
       saveCache();
       logger.info("Reply indexed", { msgId, parentId, status, note });
     }
@@ -301,7 +300,7 @@ async function searchInvoiceByAll({ username, fullname, transferContent, imageBu
   // Status: ưu tiên reply mới nhất
   // Note: ưu tiên reply mới nhất, fallback về caption gốc
   const status = latest?.status || root?.status || "Đang xử lý";
-  const note   = (latest !== null ? latest.note : undefined) ?? root?.note ?? null;
+  const note   = latest?.note   || root?.note   || null;
 
   logger.info("FOUND", { rootId, status, note });
   return { found: true, status, note };
