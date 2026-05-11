@@ -101,36 +101,37 @@ function parseCaption(text) {
   const empty = { username: null, fullname: null, ckCode: null, orderCode: null, status: null, note: null };
   if (!text) return empty;
 
-  const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  const lines = text.split(/
++/).map(l => l.trim()).filter(Boolean);
   if (lines.length === 0) return empty;
 
-  const username  = lines[0] || null;
-  const fullname  = lines[1] || null;
-  const ckCode    = lines[2] ? normCK(lines[2]) : null;
-  const orderCode = lines[3] || null;
+  const username = lines[0] || null;
+  const fullname = lines[1] || null;
+  const ckCode   = lines[2] ? normCK(lines[2]) : null;
 
-  // Từ dòng 5 (index 4) trở đi: tách ghi chú và trạng thái
+  let orderCode = null;
   let status = null;
-  const noteLines = [];
+  let note = null;
 
-  for (let i = 4; i < lines.length; i++) {
-    const s = detectStatus(lines[i]);
-    if (s) {
-      status = s; // lấy dòng status cuối cùng nếu có nhiều
-    } else {
-      noteLines.push(lines[i]);
-    }
-  }
-
-  // Fallback: tìm status trong tất cả các dòng nếu chưa thấy
-  if (!status) {
-    for (let i = 2; i < lines.length; i++) {
+  if (lines.length >= 6) {
+    orderCode = lines[3] || null;
+    const lastLine = lines[lines.length - 1];
+    status = detectStatus(lastLine) || lastLine || null;
+    const noteLines = lines.slice(4, -1);
+    note = noteLines.length ? noteLines.join(" | ") : null;
+  } else if (lines.length === 5) {
+    orderCode = "-";
+    const lastLine = lines[4];
+    status = detectStatus(lastLine) || lastLine || null;
+    note = lines[3] || null;
+  } else {
+    orderCode = lines[3] || null;
+    for (let i = lines.length - 1; i >= 2; i--) {
       const s = detectStatus(lines[i]);
       if (s) { status = s; break; }
     }
   }
 
-  const note = noteLines.length > 0 ? noteLines.join(" | ") : null;
   return { username, fullname, ckCode, orderCode, status, note };
 }
 
@@ -306,6 +307,41 @@ async function searchInvoiceByAll({ username, fullname, transferContent, imageBu
   return { found: true, status, note };
 }
 
+
+// ── Manual index invoice bot tự gửi ───────────────────────────────────────────
+// Bot API thường không gửi update cho chính tin nhắn bot vừa gửi.
+// Server gọi hàm này sau khi gửi hối thúc thành công để đưa hóa đơn vào cache.
+function addManualInvoice({ messageId, username, fullname, ckCode, orderCode, status, note, fileId }) {
+  const msgId = Number(messageId) || Date.now();
+  const entry = {
+    message_id:   msgId,
+    parent_id:    null,
+    message_date: Date.now(),
+    hash:         null,
+    file_id:      fileId || null,
+    username:     username || null,
+    fullname:     fullname || null,
+    ck_code:      ckCode ? normCK(ckCode) : null,
+    orderCode:    orderCode || "-",
+    status:       status || "Chưa nhận được",
+    note:         note || null,
+    cached_at:    Date.now(),
+  };
+
+  imageCache.set(msgId, entry);
+  saveCache();
+
+  logger.info("Manual urgent invoice indexed", {
+    msgId,
+    username: entry.username,
+    ck: entry.ck_code,
+    status: entry.status,
+    note: entry.note,
+  });
+
+  return entry;
+}
+
 // ── Webhook / Warmup ──────────────────────────────────────────────────────────
 async function processUpdate(update) {
   const msg = update.message || update.channel_post;
@@ -382,4 +418,4 @@ const telegramService = {
   getCacheStats: () => ({ images: imageCache.size, texts: textCache.size, replies: replyIndex.size }),
 };
 
-module.exports = { searchInvoiceByAll, telegramService, addRuntimeStatus, getDebugCache };
+module.exports = { searchInvoiceByAll, telegramService, addRuntimeStatus, getDebugCache, addManualInvoice };

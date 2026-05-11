@@ -1,13 +1,13 @@
 "use strict";
 require("dotenv").config();
-const axios = require("axios");
-const FormData = require("form-data");
 const express   = require("express");
+const axios     = require("axios");
+const FormData  = require("form-data");
 const cors      = require("cors");
 const helmet    = require("helmet");
 const rateLimit = require("express-rate-limit");
 const multer    = require("multer");
-const { searchInvoiceByAll, telegramService, addRuntimeStatus, getDebugCache } = require("./telegram");
+const { searchInvoiceByAll, telegramService, addRuntimeStatus, getDebugCache, addManualInvoice } = require("./telegram");
 const { sendLivechatMessage, transferToAgent, isCustomerAuthor } = require("./livechat");
 const { downloadImage } = require("./imageMatch");
 const logger = require("./logger");
@@ -465,13 +465,7 @@ app.get("/api/check-invoice", (req, res) => {
 
 
 // ── PUBLIC API — Hối thúc hóa đơn qua Telegram ────────────────────────────────
-// Caption gửi vào Telegram theo đúng format CS để telegram.js index được:
-// Dòng 1: Tài khoản
-// Dòng 2: -
-// Dòng 3: Mã nội dung chuyển khoản
-// Dòng 4: -
-// Dòng 5: Ghi chú
-// Dòng 6: Trạng thái ban đầu
+// Bot gửi caption theo format CS và tự index vào cache để khách tra lại được.
 app.post("/api/urgent-invoice", upload.single("image"), async (req, res) => {
   try {
     const token = process.env.URGENT_TG_BOT_TOKEN;
@@ -499,8 +493,9 @@ app.post("/api/urgent-invoice", upload.single("image"), async (req, res) => {
       "Chưa nhận được"
     ].join("\n");
 
+    let tg;
+
     if (image && image.buffer) {
-      const FormData = require("form-data");
       const form = new FormData();
       form.append("chat_id", chatId);
       form.append("caption", caption);
@@ -509,20 +504,30 @@ app.post("/api/urgent-invoice", upload.single("image"), async (req, res) => {
         contentType: image.mimetype || "image/jpeg",
       });
 
-      const tg = await axios.post(
+      tg = await axios.post(
         `https://api.telegram.org/bot${token}/sendPhoto`,
         form,
         { headers: form.getHeaders(), timeout: 20000 }
       );
-
-      return res.json({ ok: true, telegram: tg.data && tg.data.ok === true });
+    } else {
+      tg = await axios.post(
+        `https://api.telegram.org/bot${token}/sendMessage`,
+        { chat_id: chatId, text: caption },
+        { timeout: 15000 }
+      );
     }
 
-    const tg = await axios.post(
-      `https://api.telegram.org/bot${token}/sendMessage`,
-      { chat_id: chatId, text: caption },
-      { timeout: 15000 }
-    );
+    const sentMsg = tg.data && tg.data.result ? tg.data.result : {};
+    addManualInvoice({
+      messageId: sentMsg.message_id,
+      username,
+      fullname: "-",
+      ckCode: transferContent,
+      orderCode: "-",
+      status: "Chưa nhận được",
+      note: "Yêu cầu hối thúc hóa đơn từ khách",
+      fileId: sentMsg.photo && sentMsg.photo.length ? sentMsg.photo[sentMsg.photo.length - 1].file_id : null,
+    });
 
     return res.json({ ok: true, telegram: tg.data && tg.data.ok === true });
   } catch (err) {
