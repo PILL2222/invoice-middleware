@@ -101,8 +101,7 @@ function parseCaption(text) {
   const empty = { username: null, fullname: null, ckCode: null, orderCode: null, status: null, note: null };
   if (!text) return empty;
 
-  const lines = text.split(/
-+/).map(l => l.trim()).filter(Boolean);
+const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
   if (lines.length === 0) return empty;
 
   const username = lines[0] || null;
