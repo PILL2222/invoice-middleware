@@ -81,21 +81,36 @@ async function getToken() {
 }
 
 // ── Search deposits theo username ─────────────────────────────────────────────
+// Params lấy từ Network tab của trang BO thực tế
 async function searchDeposits(username, dayRange = 7) {
-  const token    = await getToken();
-  const now      = Date.now();
+  const token  = await getToken();
+  const zone   = process.env.ST666_ZONE || "ASIA_HO_CHI_MINH";
+
+  // Tính dateFrom / dateTo
+  const now     = Date.now();
   const dateFrom = new Date(now - dayRange * 86_400_000).toISOString().split("T")[0];
   const dateTo   = new Date(now + 86_400_000).toISOString().split("T")[0];
+
+  // starttime / endtime: midnight → end-of-day theo giờ VN (UTC+7)
+  const starttime = new Date(dateFrom + "T00:00:00+07:00").getTime();
+  const endtime   = new Date(dateTo   + "T23:59:59.999+07:00").getTime();
 
   const res = await axios.get(`${BASE}/deposits/search`, {
     params: {
       dateFrom,
       dateTo,
-      playerid:   username,
-      statusType: "DEPOSIT_AUDIT",
-      zoneType:   process.env.ST666_ZONE || "ASIA_HO_CHI_MINH",
-      language:   1,
-      getImage:   false,
+      starttime,
+      endtime,
+      playerid:    username,
+      exactmatch:  true,
+      statusType:  "DEPOSIT_AUDIT",
+      zoneType:    zone,
+      timefilter:  "deposittime",
+      sortcolumn:  "deposittime",
+      sort:        "DESC",
+      limit:       100,
+      offset:      0,
+      language:    1,
     },
     headers: buildHeaders(token),
     timeout: 12_000,
