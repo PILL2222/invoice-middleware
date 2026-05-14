@@ -93,6 +93,7 @@ async function searchDeposits(username, dayRange = 7) {
       dateTo,
       playerid:   username,
       statusType: "DEPOSIT_AUDIT",
+      zoneType:   process.env.ST666_ZONE || "ASIA_HO_CHI_MINH",
       language:   1,
       getImage:   false,
     },
