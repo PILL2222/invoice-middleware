@@ -48,6 +48,14 @@ app.get("/health", (_req, res) => res.json({
   status: "ok",
   timestamp: new Date().toISOString(),
 }));
+app.get("/my-ip", async (_req, res) => {
+  try {
+    const r = await axios.get("https://api.ipify.org?format=json");
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // ── Webhook Telegram ──────────────────────────────────────────────────────────
 app.post("/webhook/telegram", async (req, res) => {
