@@ -474,7 +474,7 @@ async function handleCskhCallback(cb) {
     root.ck_code || "-",
     root.orderCode || "-",
     root.note || "Yêu cầu CSKH chuyển tiếp qua T3",
-    root.status || "Chưa nhận được",
+    root.status || "-",
   ].join("\n");
 
   let sent;
