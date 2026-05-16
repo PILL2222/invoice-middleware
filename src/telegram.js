@@ -413,7 +413,7 @@ function addManualInvoice({ messageId, username, fullname, ckCode, orderCode, st
     fullname:     fullname || null,
     ck_code:      ckCode ? normCK(ckCode) : null,
     orderCode:    orderCode || "-",
-    status:       status || "Chưa nhận được",
+    status:       status || "-",
     note:         note || null,
     cached_at:    Date.now(),
   };
