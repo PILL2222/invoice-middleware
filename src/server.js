@@ -142,7 +142,7 @@ app.post("/api/urgent-invoice", upload.single("image"), async (req, res) => {
       transferContent,
       orderCode,
       "Yêu cầu hối thúc hóa đơn từ khách",
-      "Chưa nhận được",
+      "-",
     ].join("\n");
 
     let tg;
