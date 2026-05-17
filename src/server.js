@@ -177,7 +177,7 @@ app.post("/api/urgent-invoice", upload.single("image"), async (req, res) => {
       fullname,
       ckCode:    transferContent,
       orderCode,
-      status:    "Chưa nhận được",
+      status:    "-",
       note:      "Yêu cầu hối thúc hóa đơn từ khách",
       fileId:    sentMsg.photo?.length ? sentMsg.photo[sentMsg.photo.length - 1].file_id : null,
     });
