@@ -196,7 +196,7 @@ function buildT3Keyboard() {
       [{ text: "✅ Đã lên điểm",    callback_data: "t3:status:Đã lên điểm" }],
       [{ text: "❌ Chưa nhận được", callback_data: "t3:status:Chưa nhận được" }],
       [{ text: "⚠️ Sai số tiền",    callback_data: "t3:status:Sai số tiền" }],
-      [{ text: "🔄 Sai ngân hàng/người nhận",  callback_data: "t3:status:Sai ngân hàng" }],
+      [{ text: "🔄 Sai ngân hàng/người nhận",  callback_data: "t3:status:Sai ngân hàng/người nhận" }],
       [{ text: "✏️ Khác",           callback_data: "t3:status:Khác" }],
     ],
   };
