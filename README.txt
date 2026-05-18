@@ -6,10 +6,10 @@
 3. `package.json` → thay file `package.json` ở root repo
 
 ## Render Environment cần có
-BO_LOGIN_URL=https://bo.bo666st.com/login
-BO_DEPOSIT_URL=https://bo.bo666st.com/depositAudit
-BO_USERNAME=invoice1
-BO_PASSWORD=invoice1
+BO_LOGIN_URL=
+BO_DEPOSIT_URL=
+BO_USERNAME=
+BO_PASSWORD=
 PLAYWRIGHT_BROWSERS_PATH=0
 
 ## Render Build Command
